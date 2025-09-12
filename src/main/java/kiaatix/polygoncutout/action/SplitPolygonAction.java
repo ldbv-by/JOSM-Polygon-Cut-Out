@@ -6,13 +6,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
-import org.openstreetmap.josm.data.osm.DataSet;
-import org.openstreetmap.josm.data.osm.Node;
-import org.openstreetmap.josm.data.osm.OsmPrimitive;
-import org.openstreetmap.josm.data.osm.OsmUtils;
-import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.tools.Shortcut;
 
 import kiaatix.polygoncutout.BetterPolygonSplitter;
@@ -20,6 +17,8 @@ import kiaatix.polygoncutout.polygon.MultiPolygon;
 import kiaatix.polygoncutout.util.Commands;
 import kiaatix.polygoncutout.util.DataUtils;
 import kiaatix.polygoncutout.util.QueryUtils;
+
+import javax.swing.*;
 
 public class SplitPolygonAction extends AreaAction {
 	
@@ -80,6 +79,29 @@ public class SplitPolygonAction extends AreaAction {
 		
 		MultiPolygon polygonToSplit = null;
 		for (MultiPolygon polygon : intersectionPolygonCandidates) {
+			if (!polygon.isValid()){
+				long id;
+				if (polygon.hasRelation()){
+					Relation relation = polygon.getRelation();
+					id = relation.getUniqueId();
+				}
+				else{
+					Way way = polygon.getOuterWay();
+					id = way.getUniqueId();
+				}
+
+				Map<String, String> tags = polygon.getTags();
+				String oar = tags.get("object_type");
+				String message = oar + " '" + id + "' nicht vollständig geladen. -> Kein Splitten möglich!";
+				JOptionPane.showMessageDialog(
+						null,
+						message,
+						"Achtung",
+						JOptionPane.WARNING_MESSAGE
+				);
+				continue;
+			}
+
 			if (polygon.isNodeInsidePolygon(p)) {
 				polygonToSplit = polygon;
 			}

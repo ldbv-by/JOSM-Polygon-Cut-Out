@@ -17,6 +17,8 @@ import org.openstreetmap.josm.data.osm.RelationMember;
 import org.openstreetmap.josm.data.osm.Way;
 import kiaatix.polygoncutout.polygon.MultiPolygon;
 
+import static org.openstreetmap.josm.tools.I18n.tr;
+
 public class QueryUtils {
 
 	private static final Logger LOGGER = Logger.getLogger( QueryUtils.class.getName() );
@@ -109,7 +111,7 @@ public class QueryUtils {
 	public static List<MultiPolygon> getUnselectedMultiPolygons(DataSet data) {
 		return getUnselectedMultiPolygons(data, p -> true);
 	}
-	
+
 	public static List<MultiPolygon> getUnselectedMultiPolygons(DataSet data, Predicate<OsmPrimitive> predicate) {
 		Collection<Way> unselectedWays = DataUtils.getDifference(data.getWays(), data.getSelectedWays());
 		Collection<Relation> unselectedRelations = DataUtils.getDifference(data.getRelations(), data.getSelectedRelations());
@@ -171,8 +173,7 @@ public class QueryUtils {
 	
 	private static List<MultiPolygon> getMultiPolygons(Collection<Way> ways, Collection<Relation> relations, Predicate<OsmPrimitive> predicate) {
 		List<MultiPolygon> selectedMultiPolygons = new ArrayList<MultiPolygon>();
-		
-		
+
 		List<Way> selectedWays = ways.stream()
 				.filter(w -> !w.hasTag("highway") && w.isClosed())
 				.filter(predicate)
@@ -193,9 +194,7 @@ public class QueryUtils {
 				}
 			}
 		}
-		
-		
-		
+
 		LOGGER.info("Found " + selectedRelations.size() + " relations and " + selectedWays.size() + " ways");
 		Set<Way> outerPolygons = new HashSet<Way>();
 		for (Relation relation : selectedRelations) {
@@ -216,6 +215,10 @@ public class QueryUtils {
 				}
 				multiPolygon.setRelation(relation);
 				if (multiPolygon.isValid()) {
+					selectedMultiPolygons.add(multiPolygon);
+				}
+				else{
+					System.err.println("Invalid Relation");
 					selectedMultiPolygons.add(multiPolygon);
 				}
 			}

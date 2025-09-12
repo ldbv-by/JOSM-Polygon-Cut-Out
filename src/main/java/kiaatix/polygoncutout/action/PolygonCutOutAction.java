@@ -4,19 +4,12 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 import org.openstreetmap.josm.command.ChangeCommand;
-import org.openstreetmap.josm.data.osm.DataSet;
-import org.openstreetmap.josm.data.osm.OsmPrimitive;
-import org.openstreetmap.josm.data.osm.OsmUtils;
-import org.openstreetmap.josm.data.osm.Relation;
-import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.tools.Geometry;
 import org.openstreetmap.josm.tools.Geometry.PolygonIntersection;
 import org.openstreetmap.josm.tools.Shortcut;
@@ -67,7 +60,68 @@ public class PolygonCutOutAction extends AreaAction {
 				"village_green", 
 				"vineyard")
 		);
-		
+
+		tagSettings.allowTags("object_type", Arrays.asList(
+				"A_41001_Wohnbauflaeche",
+				"A_41002_Deponie (untertägig)",
+				"A_41002_Autobahnmeisterei",
+				"A_41002_Straßenmeisterei",
+				"A_41002_Versorgungsanlage",
+				"A_41002_Tankstelle",
+				"A_41002_Industrie und Gewerbe",
+				"A_41002_Förderanlage",
+				"A_41002_Parken",
+				"A_41002_Nicht abgrenzbar",
+				"A_41002_Deponie (oberirdisch)",
+				"A_41002_Abfallbehandlungsanlage",
+				"A_41002_Kläranlage, Klärwerk (groß, mit Klärbecken)",
+				"A_41002_Kläranlage, Klärwerk (klein, ohne Klärbecken)",
+				"A_41002_Heizwerk",
+				"A_41002_Funk- und Fernmeldeanlage",
+				"A_41002_Spielbank",
+				"A_41002_Beherbergung",
+				"A_41002_Lagerfläche",
+				"A_41002_Stadtwerke",
+				"A_41002_Wertstoffhof",
+				"A_41002_Bauhof",
+				"A_41002_Handel- und Dienstleistung",
+				"A_41002_Industrie allgemein",
+				"A_41002_Werft",
+				"A_41002_Ausstellung, Messe",
+				"A_41002_Gärtnerei",
+				"A_41002_Wasserwerk",
+				"A_41002_Kraftwerk",
+				"A_41002_Umspannstation",
+				"A_41002_Raffinerie",
+				"A_41003_Halde",
+				"A_41004_Bergbaubetrieb",
+				"A_41005_TagebauGrubeSteinbruch",
+				"A_41006_FlGemischterNutzung",
+				"A_41007_FlBesFunkPraegung",
+				"A_41008_Freizeitflaeche",
+				"A_41009_Friedhof",
+				"A_41009_Parkfriedhof",
+				"A_41009_Parken",
+				"A_42001_Strassenverkehr",
+				"A_42009_Platz",
+				"A_42010_Bahnverkehr",
+				"A_42015_Flugverkehr",
+				"A_42016_Schiffsverkehr",
+				"A_43001_Landwirtschaft",
+				"A_43002_Wald",
+				"A_43003_Gehoelz",
+				"A_43004_Heide",
+				"A_43005_Moor",
+				"A_43006_Sumpf",
+				"A_43007_Naturnahe Fläche",
+				"A_43007_Gewässerbegleitfläche",
+				"A_43007_Vegetationslose Fläche",
+				"A_44001_FliessgewKanal",
+				"A_44001_FliessgewWasserlauf",
+				"A_44005_Hafenbecken",
+				"A_44006_StehendesGewaesser")
+		);
+
 	    tagSettings.allowTag("area", "yes");
 	    tagSettings.allowKey("area:highway");
 
@@ -103,6 +157,11 @@ public class PolygonCutOutAction extends AreaAction {
 		
 		// For each selected polygon, do displace action
 		for (MultiPolygon selectedMultiPolygon : selectedPolygons) {
+			if(!selectedMultiPolygon.isValid()){
+				informUser(selectedMultiPolygon);
+				continue;
+			}
+
 			displacePolygon(data, selectedMultiPolygon);
 		}
 	}
@@ -124,6 +183,11 @@ public class PolygonCutOutAction extends AreaAction {
 			// If that background polygon intersects the selected polygon
 			if (selectedMultiPolygon.intersectsMultiPolygon(backgroundPolygon)) {
 
+				if (!backgroundPolygon.isValid()){
+					informUser(backgroundPolygon);
+					continue;
+				}
+
 				// If they do not share same outer way
 				if (!selectedMultiPolygon.getOuterWay().equals(backgroundPolygon.getOuterWay())) {
 
@@ -133,6 +197,28 @@ public class PolygonCutOutAction extends AreaAction {
 				}
 			}
 		}
+	}
+
+	private static void informUser(MultiPolygon polygon) {
+		long id;
+		if (polygon.hasRelation()){
+			Relation relation = polygon.getRelation();
+			id = relation.getUniqueId();
+		}
+		else{
+			Way way = polygon.getOuterWay();
+			id = way.getUniqueId();
+		}
+
+		Map<String, String> tags = polygon.getTags();
+		String oar = tags.get("object_type");
+		String message = oar + " '" + id + "' nicht vollständig geladen. -> Kein Ausstanzen möglich!";
+		JOptionPane.showMessageDialog(
+				null,
+				message,
+				"Achtung",
+				JOptionPane.WARNING_MESSAGE
+		);
 	}
 
 	private static void doDisplacePolygon(DataSet data, MultiPolygon foreground, MultiPolygon background) {
