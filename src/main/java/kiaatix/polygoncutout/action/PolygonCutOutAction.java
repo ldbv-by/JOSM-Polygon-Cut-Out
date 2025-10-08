@@ -6,8 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 
+import kiaatix.polygoncutout.util.Information;
 import org.openstreetmap.josm.command.ChangeCommand;
 import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.tools.Geometry;
@@ -158,7 +158,7 @@ public class PolygonCutOutAction extends AreaAction {
 		// For each selected polygon, do displace action
 		for (MultiPolygon selectedMultiPolygon : selectedPolygons) {
 			if(!selectedMultiPolygon.isValid()){
-				informUser(selectedMultiPolygon);
+				Information.informUser(selectedMultiPolygon, "Ausstanzen");
 				continue;
 			}
 
@@ -184,7 +184,7 @@ public class PolygonCutOutAction extends AreaAction {
 			if (selectedMultiPolygon.intersectsMultiPolygon(backgroundPolygon)) {
 
 				if (!backgroundPolygon.isValid()){
-					informUser(backgroundPolygon);
+					Information.informUser(backgroundPolygon, "Ausstanzen");
 					continue;
 				}
 
@@ -199,28 +199,6 @@ public class PolygonCutOutAction extends AreaAction {
 		}
 	}
 
-	private static void informUser(MultiPolygon polygon) {
-		long id;
-		if (polygon.hasRelation()){
-			Relation relation = polygon.getRelation();
-			id = relation.getUniqueId();
-		}
-		else{
-			Way way = polygon.getOuterWay();
-			id = way.getUniqueId();
-		}
-
-		Map<String, String> tags = polygon.getTags();
-		String oar = tags.get("object_type");
-		String message = oar + " '" + id + "' nicht vollständig geladen. -> Kein Ausstanzen möglich!";
-		JOptionPane.showMessageDialog(
-				null,
-				message,
-				"Achtung",
-				JOptionPane.WARNING_MESSAGE
-		);
-	}
-
 	private static void doDisplacePolygon(DataSet data, MultiPolygon foreground, MultiPolygon background) {
 		// Actually do the displacing and get a list of all new polygons.
 		Commands c = new Commands(data);
@@ -231,8 +209,6 @@ public class PolygonCutOutAction extends AreaAction {
 				"Split of background polygon done. Polygon was split into " + newPolygons.size() + " smaller polygons");
 
 		// Add all new polygons to the dataset
-
-
 		if (newPolygons.size() == 0) {
 			// If the background polygon is contained within the foreground polygon
 			// No multipolygon must be created.

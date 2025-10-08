@@ -197,6 +197,23 @@ public class QueryUtils {
 
 		LOGGER.info("Found " + selectedRelations.size() + " relations and " + selectedWays.size() + " ways");
 		Set<Way> outerPolygons = new HashSet<Way>();
+
+		for (Way way : selectedWays) {
+			if (way.isClosed()) {
+					MultiPolygon multiPolygon = new MultiPolygon();
+					multiPolygon.copyTagsFrom(way);
+					multiPolygon.setOuter(way);
+					// Should always be valid...
+					if (multiPolygon.isValid()) {
+						selectedMultiPolygons.add(multiPolygon);
+					} else {
+						System.err.println("Invalid Polygon");
+					}
+			} else {
+				System.err.println("No Polygon, -> only Way");
+			}
+		}
+
 		for (Relation relation : selectedRelations) {
 			if (relation.isMultipolygon()) {
 				MultiPolygon multiPolygon = new MultiPolygon();
@@ -217,14 +234,16 @@ public class QueryUtils {
 				if (multiPolygon.isValid()) {
 					selectedMultiPolygons.add(multiPolygon);
 				}
+				// Beyer ergänzt:
 				else{
 					System.err.println("Invalid Relation");
 					selectedMultiPolygons.add(multiPolygon);
 				}
 			}
 		}
-		
-		for (Way way : selectedWays) {
+
+		// Beyer Originalstelle auskommentiert und Code vor die Relation-Selektion gestellt:
+		/*for (Way way : selectedWays) {
 			if (way.isClosed()) {
 				if (!outerPolygons.contains(way)) {
 					MultiPolygon multiPolygon = new MultiPolygon();
@@ -242,7 +261,7 @@ public class QueryUtils {
 			} else {
 				System.err.println("Invalid Polygon");	
 			}
-		}
+		}*/
 		LOGGER.info("Found " + selectedMultiPolygons.size() + " multipolygons");
 		return selectedMultiPolygons;
 	}
