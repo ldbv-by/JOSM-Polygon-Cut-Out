@@ -119,7 +119,32 @@ public class PolygonCutOutAction extends AreaAction {
 				"A_44001_FliessgewKanal",
 				"A_44001_FliessgewWasserlauf",
 				"A_44005_Hafenbecken",
-				"A_44006_StehendesGewaesser")
+				"A_44006_StehendesGewaesser",
+				"AX_Bahnverkehr",
+				"AX_Bergbaubetrieb",
+				"AX_FlaecheBesondererFunktionalerPraegung",
+				"AX_FlaecheGemischterNutzung",
+				"AX_Fliessgewaesser",
+				"AX_Flugverkehr",
+				"AX_Friedhof",
+				"AX_Gehoelz",
+				"AX_Hafenbecken",
+				"AX_Halde",
+				"AX_Heide",
+				"AX_IndustrieUndGewerbeflaeche",
+				"AX_Landwirtschaft",
+				"AX_Meer",
+				"AX_Moor",
+				"AX_Platz",
+				"AX_Schiffsverkehr",
+				"AX_SportFreizeitUndErholungsflaeche",
+				"AX_StehendesGewaesser",
+				"AX_Strassenverkehr",
+				"AX_Sumpf",
+				"AX_TagebauGrubeSteinbruch",
+				"AX_UnlandVegetationsloseFlaeche",
+				"AX_Wald",
+				"AX_Wohnbauflaeche")
 		);
 
 	    tagSettings.allowTag("area", "yes");
