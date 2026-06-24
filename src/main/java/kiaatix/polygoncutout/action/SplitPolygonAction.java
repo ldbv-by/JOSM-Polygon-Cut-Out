@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.openstreetmap.josm.data.osm.*;
@@ -39,14 +38,14 @@ public class SplitPolygonAction extends AreaAction {
 		
 		// Get all polygons
 		List<MultiPolygon> polygons = QueryUtils.getMultiPolygons(data);
-		if (polygons.size() == 0) {
+		if (polygons.isEmpty()) {
 			showNoitifcation(tr("No polygons found in the current dataset."));
 			return;
 		}
 		
 		// Get the selected way
 		List<Way> splitWays = QueryUtils.getSelectedWays(data);
-		if (splitWays.size() == 0) {
+		if (splitWays.isEmpty()) {
 			showNoitifcation(tr("Please select at least one way."));
 			return;
 		}
@@ -65,9 +64,9 @@ public class SplitPolygonAction extends AreaAction {
 		
 		logger.info("Checking " + polygons.size() + " polygons for intersections");
 		
-		// Find candidate polygons. That is, any polygon the splitway starts and ends on.
+		// Find candidate polygons. That is, any polygon the split-way starts and ends on.
 		List<MultiPolygon> intersectionPolygonCandidates = DataUtils.getMultiPolygonsWithAllNodes(polygons, splitWay.firstNode(), splitWay.lastNode());
-		if (intersectionPolygonCandidates.size() > 0) {
+		if (!intersectionPolygonCandidates.isEmpty()) {
 			logger.info("Found " + intersectionPolygonCandidates.size() + " intersecting candidate polygons");
 		} else {
 			showNoitifcation(tr("The selected line does not start and end on a polygon"));
@@ -130,6 +129,7 @@ public class SplitPolygonAction extends AreaAction {
 				for (Way newWay : newPolygon) {
 					if (newWay.equals(oldWay)) {
 						shouldDelete = false;
+						break;
 					}
 				}
 			}

@@ -79,15 +79,15 @@ public class TagSettings {
 
     /**
      * Disallow a set of tags with the same key and different values
-     * @param key
-     * @param values
+     * @param tag
+     * @param keys
      */
     public void disAllowTags(String tag, Collection<String> keys) {
         disAllowedTags.putAll(tag, keys);
     }
 
     /**
-     * Check if a primitive is valid according to the settings in this class.
+     * Check if a primitive is valid, according to the settings in this class.
      * In case of a contradiction, i.e. the primitive is allowed for one or more tags, bus disallowed
      * for one or more other tags, disallowed is prioritized, so the result is not valid. 
      * 
@@ -95,7 +95,7 @@ public class TagSettings {
      * @return
      */
     public boolean isValid(IPrimitive primitive) {
-        return isAllowed(primitive) && ! isDissalowed(primitive);
+        return isAllowed(primitive) && ! isDisallowed(primitive);
     }
 
     /**
@@ -104,7 +104,7 @@ public class TagSettings {
      * @param primitive
      * @return
      */
-    private boolean isDissalowed(IPrimitive primitive) {
+    private boolean isDisallowed(IPrimitive primitive) {
         for (Entry<String, String> entry : primitive.getKeys().entrySet()) {
             if (disAllowedKeys.contains(entry.getKey()) && 
                     !allowedTags.contains(entry.getKey(), entry.getValue())) {
@@ -128,7 +128,7 @@ public class TagSettings {
                 return true;
             }
             if (allowedTags.contains(entry.getKey(), entry.getValue())) return true;
-        };
+        }
         return false;
     }
 }

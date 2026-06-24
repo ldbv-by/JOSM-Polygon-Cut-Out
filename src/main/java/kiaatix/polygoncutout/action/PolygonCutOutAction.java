@@ -61,6 +61,7 @@ public class PolygonCutOutAction extends AreaAction {
 				"vineyard")
 		);
 
+		// TODO: An AX_Objektarten anpassen:
 		tagSettings.allowTags("object_type", Arrays.asList(
 				"A_41001_Wohnbauflaeche",
 				"A_41002_Deponie (untertägig)",
@@ -176,7 +177,7 @@ public class PolygonCutOutAction extends AreaAction {
 		// Get all selected polygons as a list
 		List<MultiPolygon> selectedPolygons = QueryUtils.getSelectedMultiPolygons(data);
 
-		if (selectedPolygons.size() == 0) {
+		if (selectedPolygons.isEmpty()) {
 			showNoitifcation(tr("No polygons selected"));
 		}
 		
@@ -234,59 +235,63 @@ public class PolygonCutOutAction extends AreaAction {
 				"Split of background polygon done. Polygon was split into " + newPolygons.size() + " smaller polygons");
 
 		// Add all new polygons to the dataset
-		if (newPolygons.size() == 0) {
-			// If the background polygon is contained within the foreground polygon
-			// No multipolygon must be created.
-			if (!foreground.canWayBeInnerWay(background.getOuterWay())) {
-				doCreateMultiPolygon(data, c, foreground, background);
-			}
-		} else {
-			
-			// Add all new polygons
-			for (MultiPolygon p : newPolygons) {
-				c.addMultiPolygon(p);
-			}
-			
-			
-			if (background.hasRelation()) {
-				c.removeRelation(background.getRelation());
-			}
+        switch (newPolygons.size()) {
+            case 0:
+                // If the background polygon is contained within the foreground polygon.
+                // No multipolygon must be created.
+                if (!foreground.canWayBeInnerWay(background.getOuterWay())) {
+                    doCreateMultiPolygon(data, c, foreground, background);
+                }
+                break;
+            default:
 
-			for (Way oldWay : background) {
-				boolean shouldDelete = true;
+                // Add all new polygons
+                for (MultiPolygon p : newPolygons) {
+                    c.addMultiPolygon(p);
+                }
 
-				// If it is part of a new polygon do not delete
-				for (MultiPolygon newPolygon : newPolygons) {
-					for (Way newWay : newPolygon) {
 
-						if (newWay.equals(oldWay)) {
-							shouldDelete = false;
-						}
-					}
-				}
+                if (background.hasRelation()) {
+                    c.removeRelation(background.getRelation());
+                }
 
-				// If still part of other relations do not delete
-				Set<Relation> parentRelations = OsmPrimitive.getParentRelations(Collections.singleton(oldWay));
-				if (parentRelations.size() > 0) {
-					// Does oldWay have inner as role for all parent relations
-					if (parentRelations.stream().allMatch(pr -> pr.getMembers().stream().anyMatch(rm -> rm.getMember() == oldWay && rm.hasRole("inner")))) {
-						if (Geometry.polygonIntersection(oldWay.getNodes(), foreground.getOuterWay().getNodes()) == PolygonIntersection.SECOND_INSIDE_FIRST) {
-							c.removeTags(oldWay);
-						}
-					}
-					shouldDelete = false;
-				}
+                for (Way oldWay : background) {
+                    boolean shouldDelete = true;
 
-				// If inner way and is itself a polygon
-				if (background.isInner(oldWay) && oldWay.hasAreaTags()) {
-					shouldDelete = false;
-				}
+                    // If it is part of a new polygon, do not delete.
+                    for (MultiPolygon newPolygon : newPolygons) {
+                        for (Way newWay : newPolygon) {
 
-				if (shouldDelete) {
-					c.removeWay(oldWay);
-				}
-			}
-		}
+                            if (newWay.equals(oldWay)) {
+                                shouldDelete = false;
+								break;
+                            }
+                        }
+                    }
+
+                    // If still part of other relations, do not delete
+                    Set<Relation> parentRelations = OsmPrimitive.getParentRelations(Collections.singleton(oldWay));
+                    if (!parentRelations.isEmpty()) {
+                        // Does oldWay have inner as role for all parent relations
+                        if (parentRelations.stream().allMatch(pr -> pr.getMembers().stream().anyMatch(rm -> rm.getMember() == oldWay && rm.hasRole("inner")))) {
+                            if (Geometry.polygonIntersection(oldWay.getNodes(), foreground.getOuterWay().getNodes()) == PolygonIntersection.SECOND_INSIDE_FIRST) {
+                                c.removeTags(oldWay);
+                            }
+                        }
+                        shouldDelete = false;
+                    }
+
+                    // If inner way and is itself a polygon
+                    if (background.isInner(oldWay) && oldWay.hasAreaTags()) {
+                        shouldDelete = false;
+                    }
+
+                    if (shouldDelete) {
+                        c.removeWay(oldWay);
+                    }
+                }
+                break;
+        }
 
 		c.makeCommandSequence("Cutout polygon");
 	}
