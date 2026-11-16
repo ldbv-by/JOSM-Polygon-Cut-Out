@@ -3,6 +3,7 @@ package kiaatix.polygoncutout.util;
 import kiaatix.polygoncutout.polygon.MultiPolygon;
 import org.openstreetmap.josm.data.osm.Relation;
 import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.gui.MainApplication;
 
 import javax.swing.*;
 import java.util.Map;
@@ -13,7 +14,7 @@ public class Information {
 
         String oar = getObjektart(polygon);
         String message = oar + " '" + id + "' nicht vollständig geladen. -> Kein " + messagePart + " möglich!";
-        JOptionPane.showMessageDialog(null, message, "Achtung", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(MainApplication.getMainFrame(), message, "Achtung", JOptionPane.WARNING_MESSAGE);
     }
 
     public static long getId(MultiPolygon polygon) {
